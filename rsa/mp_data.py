@@ -33,7 +33,7 @@ class _DataDriver():
         print("Connected.")
 
 
-class QueryProvider_dem(QueryProvider):
+class QueryProviderDemo(QueryProvider):
     """Query provider for demo data."""
 
     _DATA_DEFS = {
@@ -185,7 +185,9 @@ class QueryProvider_dem(QueryProvider):
         data_file = kwargs.pop("data_file")
         return read_pd_df(data_file, query_name)
 
+
 def read_pd_df(data_file, query_name):
+    """Read DataFrame from file."""
     if not Path(data_file).is_file():
         raise FileNotFoundError(f"Data file {data_file} for query {query_name} not found.")
 
@@ -193,37 +195,58 @@ def read_pd_df(data_file, query_name):
         return pd.read_csv(data_file, infer_datetime_format=True, parse_dates=["TimeGenerated"])
     return pd.read_pickle(data_file)
 
-    
-class TILookup_dem:
-    
+
+class TILookupDemo:
+    """TILookup demo class"""
+
     _DATA_DEFS = {
         "ipv4": "data/ti_results_ipv4.pkl",
         "url": "data/ti_results_url.pkl",
     }
-    
+
     def lookup_ioc(self, ioc_type, **kwargs):
+        """Lookup single IoC."""
         sleep(1)
         return read_pd_df(self._DATA_DEFS.get(ioc_type), ioc_type)
-    
+
     @staticmethod
     def result_to_df(results):
+        """Convert IoC results to DataFrame."""
         if isinstance(results, pd.DataFrame):
             return results
-        
-class GeoLiteLookup_dem:
-    
+
+class GeoLiteLookupDemo:
+    """GeoLitLookup demo class."""
+
     _DATA_DEFS = {
         "ip_locs": "data/ip_locations.pkl",
     }
-    
+
     def lookup_ip(
         self,
         ip_address: str = None,
         ip_addr_list: Iterable = None,
         ip_entity: Any = None,
     ):
+        """Look up location."""
         del ip_address, ip_addr_list, ip_entity
         with open(self._DATA_DEFS["ip_locs"], "rb") as iploc_file:
             ip_locs = pickle.load(iploc_file)
         return str(ip_locs), ip_locs
-    
+
+
+_ASN_DATA = pd.read_pickle("data/az_whois.df.pkl")
+
+
+def get_whois_info_demo(ip_addr, show_progress=False):
+    """Lookup Whois data from dataframe."""
+    sleep(0.02)
+    if show_progress:
+        print(".", end="")
+    if "ExtASN" not in _ASN_DATA.columns:
+        return "Unknown", {}
+    match_row = _ASN_DATA[_ASN_DATA["AllExtIPs"] == ip_addr]
+    asn_text = match_row["ExtASN"].unique()[0]
+    if isinstance(asn_text, tuple):
+        return asn_text[0], {}
+    return asn_text, {}
