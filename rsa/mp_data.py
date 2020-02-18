@@ -6,7 +6,8 @@
 """Demo QueryProvider."""
 from functools import partial
 from pathlib import Path
-from typing import List, Dict, Union, Any
+import pickle
+from typing import List, Dict, Union, Any, Iterable
 from time import sleep
 
 import pandas as pd
@@ -32,7 +33,7 @@ class _DataDriver():
         print("Connected.")
 
 
-class DemoQueryProvider(QueryProvider):
+class QueryProvider_dem(QueryProvider):
     """Query provider for demo data."""
 
     _DATA_DEFS = {
@@ -208,3 +209,21 @@ class TILookup_dem:
     def result_to_df(results):
         if isinstance(results, pd.DataFrame):
             return results
+        
+class GeoLiteLookup_dem:
+    
+    _DATA_DEFS = {
+        "ip_locs": "data/ip_locations.pkl",
+    }
+    
+    def lookup_ip(
+        self,
+        ip_address: str = None,
+        ip_addr_list: Iterable = None,
+        ip_entity: Any = None,
+    ):
+        del ip_address, ip_addr_list, ip_entity
+        with open(self._DATA_DEFS["ip_locs"], "rb") as iploc_file:
+            ip_locs = pickle.load(iploc_file)
+        return str(ip_locs), ip_locs
+    
